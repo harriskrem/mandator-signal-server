@@ -1,10 +1,21 @@
 import express from 'express';
-import { createServer } from 'node:http';
+import { createServer } from 'node:https';
 import { Server } from 'socket.io';
+import fs from 'fs';
+
+const options = {
+  key: fs.readFileSync('/home/harriskr/certs/practice/server.key'), // replace it with your key path
+  cert: fs.readFileSync('/home/harriskr/certs/practice/server.crt'), // replace it with your certificate path
+};
 
 const app = express();
-const server = createServer(app);
-const io = new Server(server);
+const server = createServer(options, app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
 
 app.get('/', (req, res) => {
   res.send('<h1>Hello world</h1>');
@@ -42,5 +53,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log('server running at http://localhost:3000');
+  console.log('server running at https://localhost:3000');
 });
