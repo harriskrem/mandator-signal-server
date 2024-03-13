@@ -1,20 +1,16 @@
 import express from 'express';
-import { createServer } from 'node:https';
+import { createServer } from 'node:http';
 import { Server } from 'socket.io';
 import fs from 'fs';
 
-const options = {
-  key: fs.readFileSync('/home/harriskr/certs/practice/server.key'), // replace it with your key path
-  cert: fs.readFileSync('/home/harriskr/certs/practice/server.crt'), // replace it with your certificate path
-};
+// const options = {
+//   key: fs.readFileSync('/home/harriskr/certs/practice/server.key'), // replace it with your key path
+//   cert: fs.readFileSync('/home/harriskr/certs/practice/server.crt'), // replace it with your certificate path
+// };
 
 const app = express();
-const server = createServer(options, app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
+const server = createServer(app);
+const io = new Server(server);
 
 
 app.get('/', (req, res) => {
@@ -22,26 +18,22 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  console.log('a user connected: ', socket.id);
 
-  socket.on('offer', (data) => {
-    console.log('Received offer:', data);
-    // Broadcast offer to all other clients except sender
-    socket.broadcast.emit('offer', data);
-  });
+  socket.on('signal', (data) => {
+    const { id, message } = data;
 
-  // Handle 'answer' event
-  socket.on('answer', (data) => {
-    console.log('Received answer:', data);
-    // Broadcast answer to all other clients except sender
-    socket.broadcast.emit('answer', data);
-  });
+    const connections: string[] = [];
+    for (let [key] of io.sockets.sockets) {
+      connections.push(key);
+    }
 
-  // Handle 'ice-candidate' event
-  socket.on('ice-candidate', (data) => {
-    console.log('Received ICE candidate:', data);
-    // Broadcast ICE candidate to all other clients except sender
-    socket.broadcast.emit('ice-candidate', data);
+    if (id && connections.includes(id)) {
+      console.log("connections: ", connections);
+      socket.broadcast.to(id).emit("data", message);
+    } else {
+      console.log("Wrong ID. Here are the connections: ", connections);
+    }
   });
 
   // Handle disconnection
@@ -49,9 +41,20 @@ io.on('connection', (socket) => {
     console.log('A user disconnected');
   });
 
+  // for debugging purposes
+  socket.onAny((eventName, ...args) => {
+    console.log(eventName); // 'hello'
+    console.log(args); // [ 1, '2', { 3: '4', 5: ArrayBuffer (1) [ 6 ] } ]
+  });
+
+  socket.onAnyOutgoing((eventName, ...args) => {
+    console.log(eventName); // 'hello'
+    console.log(args); // [ 1, '2', { 3: '4', 5: ArrayBuffer (1) [ 6 ] } ]
+  });
+
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log('server running at https://localhost:3000');
+  console.log('server running at http://localhost:3000');
 });
