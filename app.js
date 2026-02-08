@@ -3,6 +3,7 @@ import { createServer } from 'node:https';
 import dotenv from 'dotenv';
 import express from 'express';
 import { Server } from 'socket.io';
+
 dotenv.config();
 
 const options = {
@@ -15,7 +16,7 @@ const server = createServer(options, app);
 const io = new Server(server);
 
 app.get('/', (req, res) => {
-  res.send('<h1>Hello world</h1>');
+  res.send('<h1>Fides Signal Server</h1><p>Status: Online</p><p>Active connections: ' + connections.length + '</p>');
 });
 
 let connections = [];
@@ -52,18 +53,20 @@ io.on('connection', (socket) => {
   });
 
   // for debugging purposes
-  socket.onAny((eventName, ...args) => {
-    console.log(eventName); // 'hello'
-    console.log(args); // [ 1, '2', { 3: '4', 5: ArrayBuffer (1) [ 6 ] } ]
-  });
+  if (process.env.NODE_ENV === 'development') {
+    socket.onAny((eventName, ...args) => {
+      console.log(eventName);
+      console.log(args);
+    });
 
-  socket.onAnyOutgoing((eventName, ...args) => {
-    console.log(eventName); // 'hello'
-    console.log(args); // [ 1, '2', { 3: '4', 5: ArrayBuffer (1) [ 6 ] } ]
-  });
+    socket.onAnyOutgoing((eventName, ...args) => {
+      console.log(eventName);
+      console.log(args);
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log('server running at https://localhost:3000');
+  console.log(`server running at https://localhost:${PORT}`);
 });
