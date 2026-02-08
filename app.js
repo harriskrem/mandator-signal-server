@@ -16,7 +16,11 @@ const server = createServer(options, app);
 const io = new Server(server);
 
 app.get('/', (req, res) => {
-  res.send('<h1>Fides Signal Server</h1><p>Status: Online</p><p>Active connections: ' + connections.length + '</p>');
+  res.send(
+    '<h1>Fides Signal Server</h1><p>Status: Online</p><p>Active connections: ' +
+      connections.length +
+      '</p>',
+  );
 });
 
 let connections = [];
