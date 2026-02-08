@@ -12,7 +12,7 @@
     "check": "biome check --write ."
   },
   "author": "Charalampos Kremmydas",
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
