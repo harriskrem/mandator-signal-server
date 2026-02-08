@@ -2,22 +2,23 @@ import express from 'express';
 import { createServer } from 'node:https';
 import { Server } from 'socket.io';
 import fs from 'fs';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const options = {
-  key: fs.readFileSync('C:\\Users\\harri\\certs\\vite_localhost\\server.key'), // replace it with your key path
-  cert: fs.readFileSync('C:\\Users\\harri\\certs\\vite_localhost\\server.crt'), // replace it with your certificate path
+  key: fs.readFileSync(process.env.SSL_KEY_PATH),
+  cert: fs.readFileSync(process.env.SSL_CERT_PATH),
 };
 
 const app = express();
 const server = createServer(options, app);
 const io = new Server(server);
 
-
 app.get('/', (req, res) => {
   res.send('<h1>Hello world</h1>');
 });
 
-let connections: string[] = [];
+let connections = [];
 
 io.on('connection', (socket) => {
   console.log('a user connected: ', socket.id);
@@ -26,19 +27,19 @@ io.on('connection', (socket) => {
     connections.push(key);
   }
 
-  socket.on('share_id', ({ peerId }: { peerId: string }) => {
+  socket.on('share_id', ({ peerId }) => {
     socket.to(peerId).emit('get_id', { peerId: socket.id });
   });
 
-  socket.on('send_candidate', ({ candidate, peerId }: { candidate: unknown, peerId: string }) => {
+  socket.on('send_candidate', ({ candidate, peerId }) => {
     socket.to(peerId).emit("get_candidate", { candidate, peerId: socket.id });
   });
 
-  socket.on('send_connection_offer', ({ offer, peerId }: { offer: RTCSessionDescriptionInit, peerId: string }) => {
+  socket.on('send_connection_offer', ({ offer, peerId }) => {
     socket.to(peerId).emit('get_connection_offer', { offer, peerId: socket.id });
   });
 
-  socket.on('answer', ({ answer, peerId }: { answer: RTCSessionDescriptionInit, peerId: string }) => {
+  socket.on('answer', ({ answer, peerId }) => {
     socket.to(peerId).emit('get_answer', { answer, peerId: socket.id });
   });
 
