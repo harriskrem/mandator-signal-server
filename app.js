@@ -1,8 +1,8 @@
-import express from 'express';
-import { createServer } from 'node:https';
-import { Server } from 'socket.io';
 import fs from 'fs';
+import { createServer } from 'node:https';
 import dotenv from 'dotenv';
+import express from 'express';
+import { Server } from 'socket.io';
 dotenv.config();
 
 const options = {
@@ -32,11 +32,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_candidate', ({ candidate, peerId }) => {
-    socket.to(peerId).emit("get_candidate", { candidate, peerId: socket.id });
+    socket.to(peerId).emit('get_candidate', { candidate, peerId: socket.id });
   });
 
   socket.on('send_connection_offer', ({ offer, peerId }) => {
-    socket.to(peerId).emit('get_connection_offer', { offer, peerId: socket.id });
+    socket
+      .to(peerId)
+      .emit('get_connection_offer', { offer, peerId: socket.id });
   });
 
   socket.on('answer', ({ answer, peerId }) => {
@@ -45,11 +47,11 @@ io.on('connection', (socket) => {
 
   // Handle disconnection
   socket.on('disconnect', () => {
-    connections = connections.filter(connection => connection !== socket.id);
+    connections = connections.filter((connection) => connection !== socket.id);
     console.log('A user disconnected');
   });
 
-  // for debugging purposes 
+  // for debugging purposes
   socket.onAny((eventName, ...args) => {
     console.log(eventName); // 'hello'
     console.log(args); // [ 1, '2', { 3: '4', 5: ArrayBuffer (1) [ 6 ] } ]
@@ -59,7 +61,6 @@ io.on('connection', (socket) => {
     console.log(eventName); // 'hello'
     console.log(args); // [ 1, '2', { 3: '4', 5: ArrayBuffer (1) [ 6 ] } ]
   });
-
 });
 
 const PORT = process.env.PORT || 3000;
