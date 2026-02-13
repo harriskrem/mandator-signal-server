@@ -17,7 +17,7 @@ let server;
 let io;
 let httpServer;
 
-describe('Fides Signal Server', () => {
+describe('Mandator Signal Server', () => {
   before(async () => {
     // Verify SSL certificates exist
     assert.ok(
@@ -47,7 +47,7 @@ describe('Fides Signal Server', () => {
 
     app.get('/', (_req, res) => {
       res.send(
-        '<h1>Fides Signal Server</h1><p>Status: Online</p><p>Active connections: ' +
+        '<h1>Mandator Signal Server</h1><p>Status: Online</p><p>Active connections: ' +
         connections.length +
         '</p>',
       );
@@ -84,9 +84,18 @@ describe('Fides Signal Server', () => {
       });
     });
 
-    // Start server
-    await new Promise((resolve) => {
-      httpServer.listen(TEST_PORT, resolve);
+    // Start server and fail fast on bind errors (e.g., restricted test environments)
+    await new Promise((resolve, reject) => {
+      const onError = (error) => {
+        httpServer.off('error', onError);
+        reject(error);
+      };
+
+      httpServer.once('error', onError);
+      httpServer.listen(TEST_PORT, () => {
+        httpServer.off('error', onError);
+        resolve();
+      });
     });
   });
 
@@ -95,7 +104,7 @@ describe('Fides Signal Server', () => {
     if (io) {
       io.close();
     }
-    if (httpServer) {
+    if (httpServer?.listening) {
       await new Promise((resolve) => {
         httpServer.close(resolve);
       });

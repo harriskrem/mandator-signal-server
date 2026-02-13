@@ -1,6 +1,6 @@
-# Fides Signal Server
+# Mandator Signal Server
 
-A lightweight WebRTC signaling server for the Fides peer-to-peer application. This server facilitates the exchange of connection information between peers to establish direct WebRTC connections.
+A lightweight WebRTC signaling server for the Mandator peer-to-peer application. This server facilitates the exchange of connection information between peers to establish direct WebRTC connections.
 
 ## Features
 

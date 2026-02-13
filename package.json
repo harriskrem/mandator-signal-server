@@ -1,7 +1,7 @@
 {
-  "name": "file-signal-server",
+  "name": "mandator-signal-server",
   "version": "1.0.0",
-  "description": "The signal server for the fides app",
+  "description": "The signal server for the mandator app",
   "type": "module",
   "main": "app.js",
   "scripts": {
@@ -16,12 +16,12 @@
   "author": "Charalampos Kremmydas",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^17.2.4",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.14",
+    "@biomejs/biome": "^2.3.15",
     "nodemon": "^3.1.11",
     "socket.io-client": "^4.8.3"
   }

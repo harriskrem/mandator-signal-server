@@ -17,7 +17,7 @@ const io = new Server(server);
 
 app.get('/', (_req, res) => {
   res.send(
-    '<h1>Fides Signal Server</h1><p>Status: Online</p><p>Active connections: ' +
+    '<h1>Mandator Signal Server</h1><p>Status: Online</p><p>Active connections: ' +
       connections.length +
       '</p>',
   );
