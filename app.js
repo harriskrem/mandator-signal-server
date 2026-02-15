@@ -64,9 +64,16 @@ io.on('connection', (socket) => {
     socket.to(peerId).emit('get_answer', { answer, peerId: socket.id });
   });
 
+  socket.on('check_peer', ({ peerId }, callback) => {
+    if (typeof callback === 'function') {
+      callback({ exists: connections.has(peerId) });
+    }
+  });
+
   // Handle disconnection
   socket.on('disconnect', () => {
     connections.delete(socket.id);
+    socket.broadcast.emit('peer_disconnected', { peerId: socket.id });
     console.log('A user disconnected');
   });
 
@@ -85,7 +92,8 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+const HOST = process.env.HOST || '0.0.0.0';
+server.listen(PORT, HOST, () => {
   const protocol = useHttps ? 'https' : 'http';
-  console.log(`server running at ${protocol}://localhost:${PORT}`);
+  console.log(`server running at ${protocol}://${HOST}:${PORT}`);
 });
