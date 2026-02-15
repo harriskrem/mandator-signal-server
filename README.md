@@ -5,7 +5,8 @@ A lightweight WebRTC signaling server for the Mandator peer-to-peer application.
 ## Features
 
 - **WebSocket-based signaling** using Socket.IO for real-time communication
-- **SSL/TLS support** for secure connections
+- **HTTP + optional HTTPS mode** (works behind reverse proxies like Coolify)
+- **Configurable CORS allow-list** for frontend domains
 - **Connection tracking** to monitor active peer connections
 - **WebRTC signaling events** for ICE candidate exchange, offer/answer negotiation
 - **Development mode logging** for debugging WebSocket events
@@ -13,7 +14,6 @@ A lightweight WebRTC signaling server for the Mandator peer-to-peer application.
 ## Prerequisites
 
 - Node.js 18+ (for built-in test runner support)
-- SSL certificate and key files
 
 ## Installation
 
@@ -30,7 +30,11 @@ Create a `.env` file in the root directory based on `.env.example`:
 # Server Configuration
 PORT=3000
 
-# SSL Certificate Paths
+# Allowed frontend origins (comma-separated)
+CORS_ORIGIN=https://mandator.xyz,https://www.mandator.xyz
+
+# Optional SSL Certificate Paths
+# Leave empty when running behind Coolify/Nginx/Traefik
 SSL_KEY_PATH=/path/to/your/server.key
 SSL_CERT_PATH=/path/to/your/server.crt
 
@@ -40,13 +44,13 @@ NODE_ENV=development
 
 ### Generating SSL Certificates
 
-For development, you can generate self-signed SSL certificates:
+If you want the server itself to terminate TLS (not needed in Coolify), generate self-signed certificates:
 
 ```bash
 openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
 ```
 
-For production, use certificates from a trusted Certificate Authority (CA) like Let's Encrypt.
+In production with Coolify, keep `SSL_KEY_PATH` and `SSL_CERT_PATH` empty and let Coolify handle certificates.
 
 ## Usage
 
@@ -66,7 +70,9 @@ Start the server:
 yarn start
 ```
 
-The server will be available at `https://localhost:3000` (or your configured port).
+The server URL will be:
+- `http://localhost:3000` when SSL paths are not set
+- `https://localhost:3000` when SSL paths are set
 
 ## Available Scripts
 
@@ -120,7 +126,7 @@ yarn test:watch
 ```
 
 Tests use Node.js's built-in test runner (no external dependencies required) and verify:
-- Server initialization and HTTPS configuration
+- Server initialization and TLS-capable setup
 - Socket.IO connection handling
 - WebRTC signaling event routing
 - Connection tracking
@@ -137,7 +143,7 @@ Tests use Node.js's built-in test runner (no external dependencies required) and
 The server is built with:
 - **Express.js** - HTTP server framework
 - **Socket.IO** - WebSocket communication
-- **Node.js HTTPS** - Secure server with SSL/TLS
+- **Node.js HTTP/HTTPS** - Runtime protocol based on environment variables
 - **dotenv** - Environment variable management
 
 ## Development

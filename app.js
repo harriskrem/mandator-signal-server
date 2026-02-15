@@ -1,36 +1,50 @@
 import fs from 'node:fs';
-import { createServer } from 'node:https';
+import { createServer as createHttpServer } from 'node:http';
+import { createServer as createHttpsServer } from 'node:https';
 import dotenv from 'dotenv';
 import express from 'express';
 import { Server } from 'socket.io';
 
 dotenv.config();
 
-const options = {
-  key: fs.readFileSync(process.env.SSL_KEY_PATH),
-  cert: fs.readFileSync(process.env.SSL_CERT_PATH),
-};
-
 const app = express();
-const server = createServer(options, app);
-const io = new Server(server);
+const sslKeyPath = process.env.SSL_KEY_PATH;
+const sslCertPath = process.env.SSL_CERT_PATH;
+const useHttps = Boolean(sslKeyPath && sslCertPath);
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+  : true;
+
+const server = useHttps
+  ? createHttpsServer(
+      {
+        key: fs.readFileSync(sslKeyPath),
+        cert: fs.readFileSync(sslCertPath),
+      },
+      app,
+    )
+  : createHttpServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+  },
+});
 
 app.get('/', (_req, res) => {
   res.send(
     '<h1>Mandator Signal Server</h1><p>Status: Online</p><p>Active connections: ' +
-      connections.length +
+      connections.size +
       '</p>',
   );
 });
 
-let connections = [];
+const connections = new Set();
 
 io.on('connection', (socket) => {
   console.log('a user connected: ', socket.id);
-
-  for (const [key] of io.sockets.sockets) {
-    connections.push(key);
-  }
+  connections.add(socket.id);
 
   socket.on('share_id', ({ peerId }) => {
     socket.to(peerId).emit('get_id', { peerId: socket.id });
@@ -52,7 +66,7 @@ io.on('connection', (socket) => {
 
   // Handle disconnection
   socket.on('disconnect', () => {
-    connections = connections.filter((connection) => connection !== socket.id);
+    connections.delete(socket.id);
     console.log('A user disconnected');
   });
 
@@ -72,5 +86,6 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`server running at https://localhost:${PORT}`);
+  const protocol = useHttps ? 'https' : 'http';
+  console.log(`server running at ${protocol}://localhost:${PORT}`);
 });
